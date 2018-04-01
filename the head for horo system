@@ -1,0 +1,135 @@
+#pragma once
+#ifndef hyouka
+#define hyouka
+#include<iostream>
+#include<fstream>
+#include<algorithm>
+#include<string>
+#include<vector>
+#include<map>
+using namespace std;
+namespace horo {
+	struct value_tag//此为商品类型的评分结构
+	{
+		string value_name;
+		double value_num;
+	};
+	struct goods//商品的结构
+	{
+		string ID;
+		string name;
+		string brand_name;
+		double price;
+		int amount;
+		string comments;
+		vector<value_tag> view_value;
+		vector<value_tag> pruchase_value;
+		double popularity;
+	};
+	class agent//agent为boss和users的基类，可完成boss和users的基本操作，满足ABC逻辑关系
+	{
+	private:
+		int ID;
+		int password;
+		string nick_name;
+	public:
+		agent();
+		~agent();
+		void change_password();//改变密码
+		void show_goods(goods_repertory& reper);//显示仓库
+	};
+	class Boss;
+	class Users;
+	class goods_repertory;
+	class Main_interface//Main_interface类为主控制类，控制了登陆，显示界面，调用函数，退出程序等主要方法
+	{
+	private:
+		vector<Boss> list_boss;
+		vector<Users> list_user;
+		int Mode_for_log;
+		void adversment(goods_repertory& reper);//打广告，会在用户登录时强行打一次广告，之后会根据用户的选择来查看广告
+		agent now_agent;//agent是该系统的操作者，理应加入该系统的操作成员
+	public:
+		Main_interface();//在程序正式执行前执行的操作，将运行read操作，
+		~Main_interface();
+		void log_in(int log_mode, goods_repertory& reper);//表示用户或管理员登陆，所有的函数，都将得到一个reper对象的引用，以执行操作
+		void show_boss_interface(goods_repertory&reper);//显示boss主界面，该过程将创建一个boss对象
+		void show_users_interface(goods_repertory&reper);//显示users主界面，该过程将创建一个users对象
+		void boss_choice(int mode,Boss&bo, goods_repertory& reper);//Boss选择界面，该函数在show__xxxx_interface中被调用
+		void users_choice(int mode,Users&us, goods_repertory& reper);//用户选择界面
+		void log_out();//登陆结束，程序终止
+		void show_agent();//显示谁在线
+		void change_list();//改变boss或user的list
+		void read_list();//读取boss和user列表
+		void dump_list();//写出boss和user列表
+	};
+	class goods_repertory//goods_repertory为库存类，提供了对库存可以进行的操作和库存的读写操作
+	{
+	private:
+		map<string, goods> goods_dict;//库存列表，用字典存储
+		vector<goods> sell_record;//记录购买的记录
+		void del_goods(const string&goods_id);//通过id查询goods_dict并删除
+		void change_goods_amount(const string&goods_id, int num);//通过id查找并改变数量
+		void check_goods_record();//以上三个函数设为私有，其不能被共有访问，只能通过boss作为reper类的友元（赋予权限）进行访问
+	public:
+		goods_repertory();
+		~goods_repertory();
+		void show_goods();
+		void search_goods(const string&goods_id);
+		void search_goods(Users&us, const string&goods_id);
+		/*以上两个函数为search的两个重载版本，其中，由于goods的id和名称均为string类型，无法重载，只能在函数内部判断，由于user的搜索将改变user的val行为，所以有两个不同的版本*/
+		void decrease(const string&goods_id,int num);//user的行为可以减少库存
+		void read_goods_dict();//读入goods——dict
+		void dunp_good_dict();//写出goods——dict
+		friend class Boss;
+	};
+	class shopping_cart//购物车类，每个顾客都有一个购物车
+	{
+	private:
+		vector<string> cart_id;//购物车仅记录商品的id，通过id，在repertort中查找该商品的信息
+	public:
+		shopping_cart();//对象的初始化，将调用read_cart函数
+		~shopping_cart();
+		void show_cart(goods_repertory& reper);//展示cart内容
+		void del_cart(goods_repertory& reper);//删除cart中的商品
+		void append_goods(goods_repertory& reper);//添加cart中的商品
+		void deal(const string&goods_name = "", int num = 0);//付账，默认情况为清空购物车，该操作将调用reper的decrease函数
+		void read_cart();
+		void dump_cart();
+	};
+	class Users :public agent//User同样为一个agent，公有继承逻辑合理，User初agent的基本操作外，拥有一个购物车，拥有相应的val函数和购物车操作
+	{
+	private:
+		shopping_cart my_cart;
+		vector<value_tag> lable;
+	public:
+		Users();
+		~Users();
+		void search_goods(const string&goods_id, goods_repertory& reper);//该search将调用reper中的第二个重载版本
+		void append_goods(goods_repertory& reper);//对购物车的添加操作
+		void del_goods(goods_repertory& reper);//对购物车的删除操作
+		void check_cart();//展示购物车
+		void deal(const string&goods_name = "", int num = 0);//付账
+		void lable_cal(goods_repertory& reper);//核心算法，每次search与deal操作都将执行一次lable_cal操作，计算顾客的lable值
+	};
+	class Boss :public agent//同样，Boss为agent的一个子类，有相应的操作
+	{
+	public:
+		Boss();
+		~Boss();
+		void change_goods_amount(goods_repertory& reper, const string&goods_id, int num);//改变库存容量
+		void del_goods(goods_repertory& reper, const string&goods_id);//删除商品
+		void check_goods_record(goods_repertory& reper);//调查商品流水
+		/*设计总体架构：
+			main_interface为主要的控制接口，与main函数，即控制台相连
+			reper类作为库存，在main开始执行时就被读取，此后一直作为应用被其他对象调用
+			agent为控制的代理人，具有一些基本操作，在其上又产生了继承类Users与Boss
+			Users与Boss为系统的真正操纵者，代理人，他们自身含有特殊的数据成员，有系统为其提供的操作接口
+			其中，Boss作为reper的管理者，被reper所信任，可以执行一些别人无法执行的私有操作
+			而User具有其特有的成员cart，来管理自己的购物行为
+			尽管这样的设计可能产生了一些函数的浪费（cart也许可以直接在Users里面用函数完成），但分离用户，数据和操作的方法使系统有了更加简明，清晰的逻辑，有利于接口设计架构的简洁，增强程序可理解性
+		*/
+	};
+}
+
+#endif // !hyouka
