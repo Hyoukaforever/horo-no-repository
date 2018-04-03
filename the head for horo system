@@ -1,6 +1,7 @@
 #pragma once
 #ifndef hyouka
 #define hyouka
+#include "stdafx.h"
 #include<iostream>
 #include<fstream>
 #include<algorithm>
@@ -9,6 +10,9 @@
 #include<map>
 using namespace std;
 namespace horo {
+	class Boss;
+	class Users;
+	class goods_repertory;
 	struct value_tag//此为商品类型的评分结构
 	{
 		string value_name;
@@ -35,31 +39,30 @@ namespace horo {
 	public:
 		agent();
 		~agent();
+		int re_password() { return password; }
+		int re_ID() { return ID; }
+		void creat_agent();
+		void change_nick_name();
 		void change_password();//改变密码
 		void show_goods(goods_repertory& reper);//显示仓库
 	};
-	class Boss;
-	class Users;
-	class goods_repertory;
 	class Main_interface//Main_interface类为主控制类，控制了登陆，显示界面，调用函数，退出程序等主要方法
 	{
 	private:
 		vector<Boss> list_boss;
 		vector<Users> list_user;
 		int Mode_for_log;
-		void adversment(goods_repertory& reper);//打广告，会在用户登录时强行打一次广告，之后会根据用户的选择来查看广告
 		agent now_agent;//agent是该系统的操作者，理应加入该系统的操作成员
 	public:
 		Main_interface();//在程序正式执行前执行的操作，将运行read操作，
 		~Main_interface();
-		void log_in(int log_mode, goods_repertory& reper);//表示用户或管理员登陆，所有的函数，都将得到一个reper对象的引用，以执行操作
+		void log_in(goods_repertory& reper);//表示用户或管理员登陆，所有的函数，都将得到一个reper对象的引用，以执行操作
 		void show_boss_interface(goods_repertory&reper);//显示boss主界面，该过程将创建一个boss对象
 		void show_users_interface(goods_repertory&reper);//显示users主界面，该过程将创建一个users对象
-		void boss_choice(int mode,Boss&bo, goods_repertory& reper);//Boss选择界面，该函数在show__xxxx_interface中被调用
-		void users_choice(int mode,Users&us, goods_repertory& reper);//用户选择界面
+		int boss_choice(Boss&bo, goods_repertory& reper);//Boss选择界面，该函数在show__xxxx_interface中被调用
+		int users_choice(Users&us, goods_repertory& reper);//用户选择界面
 		void log_out();//登陆结束，程序终止
 		void show_agent();//显示谁在线
-		void change_list();//改变boss或user的list
 		void read_list();//读取boss和user列表
 		void dump_list();//写出boss和user列表
 	};
@@ -68,6 +71,7 @@ namespace horo {
 	private:
 		map<string, goods> goods_dict;//库存列表，用字典存储
 		vector<goods> sell_record;//记录购买的记录
+		void add_goods();
 		void del_goods(const string&goods_id);//通过id查询goods_dict并删除
 		void change_goods_amount(const string&goods_id, int num);//通过id查找并改变数量
 		void check_goods_record();//以上三个函数设为私有，其不能被共有访问，只能通过boss作为reper类的友元（赋予权限）进行访问
@@ -104,11 +108,13 @@ namespace horo {
 		vector<value_tag> lable;
 	public:
 		Users();
+		Users(const agent&us);
 		~Users();
+		void adversment(goods_repertory& reper);//打广告，会在用户登录时强行打一次广告，之后会根据用户的选择来查看广告
 		void search_goods(const string&goods_id, goods_repertory& reper);//该search将调用reper中的第二个重载版本
 		void append_goods(goods_repertory& reper);//对购物车的添加操作
 		void del_goods(goods_repertory& reper);//对购物车的删除操作
-		void check_cart();//展示购物车
+		void check_cart(goods_repertory&reper);//展示购物车
 		void deal(const string&goods_name = "", int num = 0);//付账
 		void lable_cal(goods_repertory& reper);//核心算法，每次search与deal操作都将执行一次lable_cal操作，计算顾客的lable值
 	};
@@ -116,7 +122,10 @@ namespace horo {
 	{
 	public:
 		Boss();
+		Boss(const agent&ag);
 		~Boss();
+		void search_goods(goods_repertory&reper,const string&goods_id);
+		void add_goods(goods_repertory& reper,int goods_num,string&goods_id);
 		void change_goods_amount(goods_repertory& reper, const string&goods_id, int num);//改变库存容量
 		void del_goods(goods_repertory& reper, const string&goods_id);//删除商品
 		void check_goods_record(goods_repertory& reper);//调查商品流水
