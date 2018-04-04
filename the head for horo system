@@ -13,6 +13,7 @@ namespace horo {
 	class Boss;
 	class Users;
 	class goods_repertory;
+	class Main_interface;
 	struct value_tag//此为商品类型的评分结构
 	{
 		string value_name;
@@ -34,17 +35,19 @@ namespace horo {
 	{
 	private:
 		int ID;
-		int password;
+		string password;
 		string nick_name;
 	public:
 		agent();
 		~agent();
-		int re_password() { return password; }
+		string re_password() { return password; }
 		int re_ID() { return ID; }
+		string re_nick_name() { return nick_name; }
 		void creat_agent();
 		void change_nick_name();
 		void change_password();//改变密码
 		void show_goods(goods_repertory& reper);//显示仓库
+		friend class Main_interface;
 	};
 	class Main_interface//Main_interface类为主控制类，控制了登陆，显示界面，调用函数，退出程序等主要方法
 	{
