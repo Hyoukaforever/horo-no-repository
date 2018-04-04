@@ -10,7 +10,7 @@ using namespace std;
 namespace horo {
 	agent::agent() {
 		ID = 0;
-		password = 0;
+		password ="";
 		nick_name = "";
 	}
 	agent::~agent() {
@@ -69,7 +69,8 @@ namespace horo {
 			cin >> choice;
 		}
 		if (choice == 1) {
-			int ID, password;
+			int ID;
+			string password;
 			cout << "请输入您的账号";
 			cin >> ID;
 			while (!cin) {
@@ -108,7 +109,8 @@ namespace horo {
 			show_users_interface(reper);
 		}
 		if (choice == 3) {
-			int ID, password;
+			int ID;
+			string password;
 			cout << "请输入您的账号";
 			cin >> ID;
 			while (!cin) {
@@ -163,6 +165,7 @@ namespace horo {
 		log_out();
 	}
 	int Main_interface::boss_choice(Boss&bo, goods_repertory& reper) {
+		show_agent();
 		cout << "0.注销账号" << "\t" << "1.查看商品" << "\t" << "2.增加商品" << "\t" << "3.删除商品" << "\t" << "4.修改商品数量" << endl;
 		cout << "5.查看流水" << "\t" << "6.修改密码" << "\t" << "7.修改昵称" << "\t" << "8.商品搜索" << endl;
 		int mode;
@@ -233,6 +236,7 @@ namespace horo {
 		}
 	}
 	int Main_interface::users_choice(Users&us, goods_repertory& reper) {
+		show_agent();
 		cout << "0.注销登陆" << "\t" << "1.查询商品" << "\t" << "2.商品搜索" << "\t" << "3.添加到购物车" << endl;
 		cout << "4.删除购物车中商品" << "\t" << "5.查看购物车" << "\t" << "6.结账" << "\t" << "7.修改密码" << endl;
 		cout << "8.修改昵称" << "\t" << "9.查看广告" << endl;
@@ -305,5 +309,46 @@ namespace horo {
 			us.adversment(reper);
 			return 1;
 		}
+		else {
+			cout << "没有这样的自选择" << endl;
+			cout << "返回选择界面" << endl;
+			return 1;
+		}
+	}
+	void Main_interface::log_out() {
+		cout << "感谢您的使用" << endl;
+		cout << "再见~" << endl;
+	}
+	void Main_interface::show_agent() {
+		if (Mode_for_log == 1) {
+			cout << "现在在线的是用户" << now_agent.re_nick_name() << endl;
+		}
+		if (Mode_for_log == 2) {
+			cout << "现在在线的是管理员" << now_agent.re_nick_name() << endl;
+		}
+	}
+	void Main_interface::read_list() {
+		ifstream fin("D:\\homework\\pro1\\data_base\\Boss_list.txt", ios_base::in);
+		while (fin) {
+			agent temp_agent;
+			fin >> temp_agent.ID;
+			fin >> temp_agent.password;
+			fin >> temp_agent.nick_name;
+			Boss temp_boss(temp_agent);
+			list_boss.push_back(temp_boss);
+		}
+		fin.clear();
+		fin.close();
+		fin.open("D:\\homework\\pro1\\data_base\\Users_list.txt", ios_base::in);
+		while (fin) {
+			agent temp_agent;
+			fin >> temp_agent.ID;
+			fin >> temp_agent.password;
+			fin >> temp_agent.nick_name;
+			Boss temp_user(temp_agent);
+			list_boss.push_back(temp_user);
+		}
+		fin.clear();
+		fin.close();
 	}
 }
