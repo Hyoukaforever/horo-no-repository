@@ -21,6 +21,7 @@ namespace horo {
 		cin >> ID;
 		while (!cin) {
 			cin.clear();
+			cin.ignore(100, '\n');
 			cout << "请认真对待您的账号";
 			cin >> ID;
 		}
@@ -28,6 +29,7 @@ namespace horo {
 		cin >> password;		
 		while (!cin) {
 			cin.clear();
+			cin.ignore(100, '\n');
 			cout << "请认真对待您的密码";
 			cin >> password;
 		}
@@ -45,6 +47,7 @@ namespace horo {
 		cin >> password;
 		while (!cin) {
 			cin.clear();
+			cin.ignore(100, '\n');
 			cout << "请认真对待您的密码";
 			cin >> password;
 		}
@@ -60,11 +63,12 @@ namespace horo {
 
 	}
 	void Main_interface::log_in(goods_repertory& reper) {
-		cout << "1.用户登陆" << "\t" << "2.创建用户" << "3.管理员登陆" << endl;
+		cout << "1.用户登陆" << "\t" << "2.创建用户" <<"\t"<< "3.管理员登陆" << endl;
 		int choice;
 		cin >> choice;
 		while (!cin) {
 			cin.clear();
+			cin.ignore(100, '\n');
 			cout << "请认真对待您的行为";
 			cin >> choice;
 		}
@@ -75,6 +79,7 @@ namespace horo {
 			cin >> ID;
 			while (!cin) {
 				cin.clear();
+				cin.ignore(100, '\n');
 				cout << "请认真对待您的账号";
 				cin >> ID;
 			}
@@ -82,6 +87,7 @@ namespace horo {
 			cin >> password;
 			while (!cin) {
 				cin.clear();
+				cin.ignore(100, '\n');
 				cout << "请认真对待您的密码";
 				cin >> password;
 			}
@@ -98,6 +104,7 @@ namespace horo {
 			else {
 				Mode_for_log = 1;
 				cout << "登陆成功！" << endl;
+				now_agent = list_user[i];
 				show_users_interface(reper);
 			}
 		}
@@ -115,6 +122,7 @@ namespace horo {
 			cin >> ID;
 			while (!cin) {
 				cin.clear();
+				cin.ignore(100, '\n');
 				cout << "请认真对待您的账号";
 				cin >> ID;
 			}
@@ -122,6 +130,7 @@ namespace horo {
 			cin >> password;
 			while (!cin) {
 				cin.clear();
+				cin.ignore(100, '\n');
 				cout << "请认真对待您的密码";
 				cin >> password;
 			}
@@ -137,6 +146,7 @@ namespace horo {
 			}
 			else {
 				Mode_for_log = 2;
+				now_agent = list_boss[i];
 				cout << "登陆成功！" << endl;
 				show_boss_interface(reper);
 			}
@@ -172,6 +182,7 @@ namespace horo {
 		cin >> mode;
 		while (!cin) {
 			cin.clear();
+			cin.ignore(100, '\n');
 			cout << "请认真对待您的行为";
 			cin >> mode;
 		}
@@ -244,6 +255,7 @@ namespace horo {
 		cin >> mode;
 		while (!cin) {
 			cin.clear();
+			cin.ignore(100, '\n');
 			cout << "请认真对待您的行为";
 			cin >> mode;
 		}
@@ -332,6 +344,9 @@ namespace horo {
 		while (fin) {
 			agent temp_agent;
 			fin >> temp_agent.ID;
+			if (!fin) {
+				break;
+			}
 			fin >> temp_agent.password;
 			fin >> temp_agent.nick_name;
 			Boss temp_boss(temp_agent);
@@ -343,12 +358,29 @@ namespace horo {
 		while (fin) {
 			agent temp_agent;
 			fin >> temp_agent.ID;
+			if (!fin) {
+				break;
+			}
 			fin >> temp_agent.password;
 			fin >> temp_agent.nick_name;
 			Boss temp_user(temp_agent);
-			list_boss.push_back(temp_user);
+			list_user.push_back(temp_user);
 		}
 		fin.clear();
 		fin.close();
+	}
+	void Main_interface::dump_list() {
+		ofstream fout("D:\\homework\\pro1\\data_base\\Boss_list.txt", ios_base::out);
+		for (auto &x : list_boss) {
+			fout << x.ID << " " << x.password << " " << x.nick_name << endl;
+		}
+		fout.clear();
+		fout.close();
+		fout.open("D:\\homework\\pro1\\data_base\\Users_list.txt", ios_base::out);
+		for (auto &x : list_user) {
+			fout << x.ID << " " << x.password << " " << x.nick_name << endl;
+		}
+		fout.clear();
+		fout.close();
 	}
 }
