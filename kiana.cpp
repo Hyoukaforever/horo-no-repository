@@ -201,7 +201,7 @@ namespace horo {
 			cout << "请输入添加的商品数量";
 			int temp_num;
 			cin >> temp_num;
-			bo.add_goods(reper, temp_num, temp_name);
+			bo.add_goods(reper);
 			return 1;
 		}
 		else if (mode == 3) {
@@ -290,7 +290,7 @@ namespace horo {
 			cout << "全部清空？YES   NO" << endl;
 			string judge;
 			if (judge == "YES") {
-				us.deal();
+				us.deal(us,reper);
 				return 1;
 			}
 			else if (judge == "NO") {
@@ -300,7 +300,7 @@ namespace horo {
 				cout << "请输入数量";
 				int temp_num;
 				cin >> temp_num;
-				us.deal(temp_name, temp_num);
+				us.deal(us,reper,temp_name, temp_num);
 				return 1;
 			}
 			else {
