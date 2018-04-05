@@ -28,8 +28,12 @@ namespace horo {
 		int amount;
 		string comments;
 		vector<value_tag> view_value;
-		vector<value_tag> pruchase_value;
+		vector<value_tag> purchase_value;
 		double popularity;
+		void show_it() { 
+			cout << ID << "   " << name << "   " << brand_name << "   " << price << "元   库存有" << amount << endl;
+			cout << "评级为" << comments << "   "<<"热度为"<<popularity<<endl;
+		}
 	};
 	class agent//agent为boss和users的基类，可完成boss和users的基本操作，满足ABC逻辑关系
 	{
@@ -77,17 +81,19 @@ namespace horo {
 		void add_goods();
 		void del_goods(const string&goods_id);//通过id查询goods_dict并删除
 		void change_goods_amount(const string&goods_id, int num);//通过id查找并改变数量
-		void check_goods_record();//以上三个函数设为私有，其不能被共有访问，只能通过boss作为reper类的友元（赋予权限）进行访问
+		void check_goods_record() ;//以上三个函数设为私有，其不能被共有访问，只能通过boss作为reper类的友元（赋予权限）进行访问
 	public:
-		goods_repertory();
-		~goods_repertory();
-		void show_goods();
-		void search_goods(const string&goods_id);
-		void search_goods(Users&us, const string&goods_id);
+		goods_repertory() ;
+		~goods_repertory() ;
+		double re_price(const string&goods_id) { return goods_dict[goods_id].price; }
+		void adversement(Users&us,vector<value_tag>val);
+		void show_goods() ;
+		int search_goods(const string&goods_id) ;
+		int search_goods(Users&us, const string&goods_id) ;
 		/*以上两个函数为search的两个重载版本，其中，由于goods的id和名称均为string类型，无法重载，只能在函数内部判断，由于user的搜索将改变user的val行为，所以有两个不同的版本*/
-		void decrease(const string&goods_id,int num);//user的行为可以减少库存
-		void read_goods_dict();//读入goods——dict
-		void dunp_good_dict();//写出goods——dict
+		void decrease(const string&goods_id, int num) ;//user的行为可以减少库存
+		void read() ;//读入goods——dict
+		void dump() ;//写出goods——dict
 		friend class Boss;
 	};
 	class shopping_cart//购物车类，每个顾客都有一个购物车
@@ -95,14 +101,14 @@ namespace horo {
 	private:
 		vector<string> cart_id;//购物车仅记录商品的id，通过id，在repertort中查找该商品的信息
 	public:
-		shopping_cart();//对象的初始化，将调用read_cart函数
-		~shopping_cart();
-		void show_cart(goods_repertory& reper);//展示cart内容
+		shopping_cart(Users&us) ;//对象的初始化，将调用read_cart函数
+		~shopping_cart() ;
+		void show_cart(goods_repertory& reper) ;//展示cart内容
 		void del_cart(goods_repertory& reper);//删除cart中的商品
-		void append_goods(goods_repertory& reper);//添加cart中的商品
-		void deal(const string&goods_name = "", int num = 0);//付账，默认情况为清空购物车，该操作将调用reper的decrease函数
-		void read_cart();
-		void dump_cart();
+		void append_goods(goods_repertory& reper) ;//添加cart中的商品
+		void deal(Users&us,goods_repertory& reper,const string&goods_name = "", int num = 0) ;//付账，默认情况为清空购物车，该操作将调用reper的decrease函数
+		void read_cart(Users&us) ;
+		friend class Users;
 	};
 	class Users :public agent//User同样为一个agent，公有继承逻辑合理，User初agent的基本操作外，拥有一个购物车，拥有相应的val函数和购物车操作
 	{
@@ -110,28 +116,28 @@ namespace horo {
 		shopping_cart my_cart;
 		vector<value_tag> lable;
 	public:
-		Users();
-		Users(const agent&us);
-		~Users();
-		void adversment(goods_repertory& reper);//打广告，会在用户登录时强行打一次广告，之后会根据用户的选择来查看广告
-		void search_goods(const string&goods_id, goods_repertory& reper);//该search将调用reper中的第二个重载版本
-		void append_goods(goods_repertory& reper);//对购物车的添加操作
-		void del_goods(goods_repertory& reper);//对购物车的删除操作
-		void check_cart(goods_repertory&reper);//展示购物车
-		void deal(const string&goods_name = "", int num = 0);//付账
-		void lable_cal(goods_repertory& reper);//核心算法，每次search与deal操作都将执行一次lable_cal操作，计算顾客的lable值
+		Users() ;
+		Users(agent&us);
+		~Users() ;
+		void adversment(goods_repertory& reper) ;//打广告，会在用户登录时强行打一次广告，之后会根据用户的选择来查看广告
+		void search_goods(const string&goods_id, goods_repertory& reper) { reper.search_goods(*this, goods_id); }//该search将调用reper中的第二个重载版本
+		void append_goods(goods_repertory& reper) { my_cart.append_goods(reper); }//对购物车的添加操作
+		void del_goods(goods_repertory& reper) { my_cart.del_cart(reper); }//对购物车的删除操作
+		void check_cart(goods_repertory&reper) { my_cart.show_cart(reper); }//展示购物车
+		void deal(Users&us,goods_repertory& reper, const string&goods_name = "", int num = 0) { my_cart.deal(*this,reper, goods_name, num); }//付账
+		void lable_cal(goods_repertory& reper, value_tag val1,value_tag val2) ;//核心算法，每次search与deal操作都将执行一次lable_cal操作，计算顾客的lable值
 	};
 	class Boss :public agent//同样，Boss为agent的一个子类，有相应的操作
 	{
 	public:
-		Boss();
-		Boss(const agent&ag);
-		~Boss();
-		void search_goods(goods_repertory&reper,const string&goods_id);
-		void add_goods(goods_repertory& reper,int goods_num,string&goods_id);
-		void change_goods_amount(goods_repertory& reper, const string&goods_id, int num);//改变库存容量
-		void del_goods(goods_repertory& reper, const string&goods_id);//删除商品
-		void check_goods_record(goods_repertory& reper);//调查商品流水
+		Boss() {}
+		Boss(const agent&ag) :agent(ag) {}
+		~Boss() {}
+		void search_goods(goods_repertory&reper, const string&goods_id) { reper.search_goods(goods_id); }
+		void add_goods(goods_repertory& reper) { reper.add_goods(); }
+		void change_goods_amount(goods_repertory& reper, const string&goods_id, int num) { reper.change_goods_amount(goods_id, num); }
+		void del_goods(goods_repertory& reper, const string&goods_id) { reper.del_goods(goods_id); }
+		void check_goods_record(goods_repertory& reper) { reper.check_goods_record(); }
 		/*设计总体架构：
 			main_interface为主要的控制接口，与main函数，即控制台相连
 			reper类作为库存，在main开始执行时就被读取，此后一直作为应用被其他对象调用
