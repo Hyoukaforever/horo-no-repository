@@ -119,6 +119,7 @@ namespace horo {
 		Users() ;
 		Users(agent&us);
 		~Users() ;
+		void dump_user();
 		void adversment(goods_repertory& reper) ;//打广告，会在用户登录时强行打一次广告，之后会根据用户的选择来查看广告
 		void search_goods(const string&goods_id, goods_repertory& reper) { reper.search_goods(*this, goods_id); }//该search将调用reper中的第二个重载版本
 		void append_goods(goods_repertory& reper) { my_cart.append_goods(reper); }//对购物车的添加操作
@@ -151,3 +152,4 @@ namespace horo {
 }
 
 #endif // !hyouka
+
