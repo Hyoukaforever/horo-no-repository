@@ -108,14 +108,14 @@ namespace horo {
 				show_users_interface(reper);
 			}
 		}
-		if (choice == 2) {
+		else if (choice == 2) {
 			now_agent.creat_agent();
 			list_user.push_back(Users(now_agent));
 			dump_list();
 			Mode_for_log = 1;
 			show_users_interface(reper);
 		}
-		if (choice == 3) {
+		else if (choice == 3) {
 			int ID;
 			string password;
 			cout << "请输入您的账号";
@@ -173,6 +173,7 @@ namespace horo {
 			continue;
 		}
 		log_out();
+		now_user.dump_user();
 	}
 	int Main_interface::boss_choice(Boss&bo, goods_repertory& reper) {
 		show_agent();
@@ -195,12 +196,6 @@ namespace horo {
 			return 1;
 		}
 		else if (mode == 2) {
-			cout << "请输入商品代码";
-			string temp_name;
-			cin >> temp_name;
-			cout << "请输入添加的商品数量";
-			int temp_num;
-			cin >> temp_num;
 			bo.add_goods(reper);
 			return 1;
 		}
@@ -289,6 +284,7 @@ namespace horo {
 		else if (mode == 6) {
 			cout << "全部清空？YES   NO" << endl;
 			string judge;
+			cin >> judge;
 			if (judge == "YES") {
 				us.deal(us,reper);
 				return 1;
@@ -363,7 +359,7 @@ namespace horo {
 			}
 			fin >> temp_agent.password;
 			fin >> temp_agent.nick_name;
-			Boss temp_user(temp_agent);
+			Users temp_user(temp_agent);
 			list_user.push_back(temp_user);
 		}
 		fin.clear();
