@@ -88,11 +88,13 @@ namespace horo {
 				if (x.second.amount < 0) {
 					continue;
 				}
-				if (x.second.name.find(goods_id) != x.second.name.size()) {
+				int q = x.second.name.find(goods_id);
+				if (q>=0) {
 					x.second.show_it();
 					us.lable_cal(*this, x.second.view_value[0],x.second.view_value[1]);
 				}
-				if (x.second.brand_name.find(goods_id) != x.second.brand_name.size()) {
+				int p = x.second.brand_name.find(goods_id);
+				if (p>=0) {
 					x.second.show_it();
 					us.lable_cal(*this, x.second.view_value[0], x.second.view_value[1]);
 				}
@@ -134,6 +136,7 @@ namespace horo {
 			temp_good.second.view_value.push_back(temp_val);
 			temp_val.value_num *= 3;
 			temp_good.second.purchase_value.push_back(temp_val);
+			goods_dict[temp_good.first] = temp_good.second;
 		}
 		fin.clear();
 		fin.close();
@@ -147,6 +150,8 @@ namespace horo {
 			fin>>temp_good.name >> temp_good.brand_name >> temp_good.price >> temp_good.comments;
 			sell_record.push_back(temp_good);
 		}
+		fin.clear();
+		fin.close();
 	}
 	void goods_repertory::dump() {
 		ofstream fout("D:\\homework\\pro1\\data_base\\goods_repertory.txt", ios_base::out);
@@ -167,10 +172,10 @@ namespace horo {
 	void goods_repertory::add_goods() {
 		goods temp_go;
 		cout << "请输入商品代码";
-		cin >> temp_go.name;
-		while (temp_go.name[0] != 'F') {
+		cin >> temp_go.ID;
+		while (temp_go.ID[0] != 'F') {
 			cout << "代码以F开头！";
-			cin >> temp_go.name;
+			cin >> temp_go.ID;
 		}
 		cout << "请输入商品名称";
 		cin >> temp_go.name;
@@ -194,6 +199,14 @@ namespace horo {
 		}
 		cout << "请输入评价";
 		cin >> temp_go.comments;
+		cout << "请输入热度" << endl;
+		cin >> temp_go.popularity;
+		while (!cin) {
+			cin.clear();
+			cin.ignore(100, '\n');
+			cout << "数量为数字";
+			cin >> temp_go.popularity;
+		}
 		for (int i = 0; i < 2; i++) {
 			value_tag temp_tag;
 			cout << "请输入属性";
@@ -255,6 +268,9 @@ namespace horo {
 		}
 		sort(good_poi.begin(), good_poi.end(), [](pair<double, string>p1, pair<double, string>p2) {return p1.first > p2.first; });
 		for (int i = 0; i < 3; i++) {
+			if (goods_dict[good_poi[i].second].amount < 0) {
+				continue;
+			}
 			goods_dict[good_poi[i].second].show_it();
 		}
 	}
@@ -366,14 +382,15 @@ namespace horo {
 		}
 		reverse(file_name.begin(), file_name.end());
 		ifstream fin(path + file_name + "_shopping_cart.txt", ios_base::in);
+		string temp_id;
+		fin >> temp_id;
 		if (!fin) {
 			fin.clear();
 			fin.close();
-			ofstream fout(path + file_name + "_shopping_cart.txt", ios_base::out);
-			fout.clear();
-			fout.close();
+			return;
 		}
 		else {
+			cart_id.push_back(temp_id);
 			while (fin) {
 				string temp_id;
 				fin >> temp_id;
@@ -383,6 +400,8 @@ namespace horo {
 				cart_id.push_back(temp_id);
 			}
 		}
+		fin.clear();
+		fin.close();
 	}
 	Users::Users() :agent(),my_cart(*this){
 		lable.clear();
@@ -397,23 +416,33 @@ namespace horo {
 		}
 		reverse(file_name.begin(), file_name.end());
 		ifstream fin(path + file_name + "_lable.txt", ios_base::in);
+		value_tag _val;
+		fin >> _val.value_name;
+		fin >> _val.value_num;
 		if (!fin) {
 			fin.clear();
 			fin.close();
-			ofstream fout(path + file_name + "_lable.txt", ios_base::out);
-			fout.clear();
-			fout.close();
+			return;
 		}
 		else {
-			while (fin.peek() != '\n') {
+			lable.push_back(_val);
+			while (fin) {
 				value_tag temp_val;
 				fin >> temp_val.value_name;
+				if (!fin) {
+					break;
+				}
 				fin >> temp_val.value_num;
 				lable.push_back(temp_val);
 			}
 		}
+		fin.clear();
+		fin.close();
 	}
 	Users::~Users() {
+
+	}
+	void Users::dump_user() {
 		string path = "D:\\homework\\pro1\\data_base\\";
 		int rec = re_ID();
 		string file_name;
@@ -424,9 +453,8 @@ namespace horo {
 		reverse(file_name.begin(), file_name.end());
 		ofstream fout(path + file_name + "_lable.txt", ios_base::out);
 		for (auto&x : lable) {
-			fout << x.value_name << " " << x.value_num << " ";
+			fout << x.value_name << " " << x.value_num<<" ";
 		}
-		fout << '\n';
 		fout.clear();
 		fout.close();
 		fout.open(path + file_name + "_shopping_cart.txt", ios_base::out);
@@ -441,7 +469,13 @@ namespace horo {
 	}
 	void Users::lable_cal(goods_repertory& reper, value_tag val1, value_tag val2) {
 		auto pos1 = find_if(lable.begin(), lable.end(), [&](value_tag t1) {return t1.value_name == val1.value_name; });
-		if (pos1 == lable.end()) {
+		if (lable.size() == 0) {
+			value_tag temp_tag;
+			temp_tag.value_name = val1.value_name;
+			temp_tag.value_num = val1.value_num;
+			lable.push_back(temp_tag);
+		}
+		else if (pos1 ==lable.end()) {
 			value_tag temp_tag;
 			temp_tag.value_name = val1.value_name;
 			temp_tag.value_num = val1.value_num;
@@ -451,7 +485,7 @@ namespace horo {
 			(*pos1).value_num += val1.value_num;
 		}
 		auto pos2 = find_if(lable.begin(), lable.end(), [&](value_tag t1) {return t1.value_name == val2.value_name; });
-		if (pos2 == lable.end()) {
+		if (pos2 ==lable.end()) {
 			value_tag temp_tag;
 			temp_tag.value_name = val2.value_name;
 			temp_tag.value_num = val2.value_num;
